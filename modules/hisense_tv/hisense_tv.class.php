@@ -249,57 +249,57 @@ function usual(&$out) {
       $table='hisense_device';
       $device=SQLSelectOne("SELECT * FROM $table WHERE ID=$device_id"); 
       //DebMes($device['IP']." ".$device['MAC'], 'hisense_tv'); 
-      if ($properties[$i]['TITLE'] == 'state')
-      {
-          if ($value == '1')
-              $this->wakeOnLan('192.168.0.255',$device['MAC']);
-          else
-              $this->sendCommand($device['IP'],'/remoteapp/tv/remote_service/'.$this->client_name.'/actions/sendkey','KEY_POWER');
-      }
-      if ($properties[$i]['TITLE'] == 'channel_num')
-      {
-        $new = $value;
-        $old = $properties[$i]['VALUE'];
+      $new = $value;
+      $old = $properties[$i]['VALUE'];
         
-        if ($new != $old)
-        {
-            if ($new - $old == 1)
-                $this->sendCommand($device['IP'],'/remoteapp/tv/remote_service/'.$this->client_name.'/actions/sendkey','KEY_CHANNELUP'); //ch+
-            else if ($old - $new == 1)
-                $this->sendCommand($device['IP'],'/remoteapp/tv/remote_service/'.$this->client_name.'/actions/sendkey','KEY_CHANNELDOWN'); //ch+
-            else
-            {
-                $client = $this->createClient($device['IP']);
-                $name = $this->client_name.substr(md5(rand()),0,5);
-                $success = $client->sendConnect($name);  // set your client ID
-                if ($success)
-                {
-                    $ch = strval($new);
-                    $a = str_split($ch);
-                    foreach ($a as $v) {
-                        if ($v == 0) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_0');// 0
-                        else if ($v == 1) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_1');// 1
-                        else if ($v == 2) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_2');// 2
-                        else if ($v == 3) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_3');// 3
-                        else if ($v == 4) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_4');// 4
-                        else if ($v == 5) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_5');// 5
-                        else if ($v == 6) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_6');// 6
-                        else if ($v == 7) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_7');// 7
-                        else if ($v == 8) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_8');// 8
-                        else if ($v == 9) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_9');// 9
-                    }
-                    $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_OK');
-                }
-               
-            }
-        }
-      }
-      if ($properties[$i]['TITLE'] == 'volume_value')
+      if ($new != $old)
       {
-        $this->sendCommand($device['IP'],'/remoteapp/tv/platform_service/'.$this->client_name.'/actions/changevolume',$value);
+          $name = $this->client_name.substr(md5(rand()),0,5);
+                    
+          if ($properties[$i]['TITLE'] == 'state')
+          {
+              if ($value == '1')
+                  $this->wakeOnLan('192.168.0.255',$device['MAC']);
+              else
+                  $this->sendCommand($device['IP'],'/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_POWER');
+          }
+          if ($properties[$i]['TITLE'] == 'channel_num')
+          {
+                if ($new - $old == 1)
+                    $this->sendCommand($device['IP'],'/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_CHANNELUP'); //ch+
+                else if ($old - $new == 1)
+                    $this->sendCommand($device['IP'],'/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_CHANNELDOWN'); //ch+
+                else
+                {
+                    $client = $this->createClient($device['IP']);
+                    $success = $client->sendConnect($name);  
+                    if ($success)
+                    {
+                        $ch = strval($new);
+                        $a = str_split($ch);
+                        foreach ($a as $v) {
+                            if ($v == 0) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_0');// 0
+                            else if ($v == 1) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_1');// 1
+                            else if ($v == 2) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_2');// 2
+                            else if ($v == 3) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_3');// 3
+                            else if ($v == 4) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_4');// 4
+                            else if ($v == 5) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_5');// 5
+                            else if ($v == 6) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_6');// 6
+                            else if ($v == 7) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_7');// 7
+                            else if ($v == 8) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_8');// 8
+                            else if ($v == 9) $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_9');// 9
+                        }
+                        $client->sendPublish('/remoteapp/tv/remote_service/'.$name.'/actions/sendkey','KEY_OK');
+                    }
+                   
+                }
+          }
+          if ($properties[$i]['TITLE'] == 'volume_value')
+          {
+            $this->sendCommand($device['IP'],'/remoteapp/tv/platform_service/'.$name.'/actions/changevolume',$value);
+          }
+      
       }
-      
-      
     }
    }
  }
@@ -403,11 +403,6 @@ function usual(&$out) {
             $value["TITLE"] = $key;
             $value["DEVICE_ID"] = $id;
             $value["UPDATED"] = date('Y-m-d H:i:s');
-            if ($key != "startup")
-            {
-                if ($val == 'on') $val = 1;
-                if ($val == 'off') $val = 0;
-            }
             if ($value['ID']) {
                 if ($value["VALUE"] != $val)
                 {   
@@ -434,12 +429,30 @@ function processMessage($id, $path, $value)
         {
             $tmp = json_decode($value, true);
             print_r ($tmp);
-            $data['channel_num'] = $tmp['channel_num'];
-            $data['channel_name'] = $tmp['channel_name'];
-            $data['progname'] = $tmp['progname'];
-            $data['detail'] = $tmp['detail'];
-            $data['starttime'] = $tmp['starttime'];
-            $data['endtime'] = $tmp['endtime'];
+            if ($tmp["statetype"] == 'livetv')
+            {
+                $data['channel_num'] = $tmp['channel_num'];
+                $data['name'] = $tmp['channel_name'];
+                $data['progname'] = $tmp['progname'];
+                $data['detail'] = $tmp['detail'];
+                $data['starttime'] = $tmp['starttime'];
+                $data['endtime'] = $tmp['endtime'];
+            }
+            if ($tmp["statetype"] == 'app')
+            {
+                $data['name'] = $tmp['name'];
+                $data['url'] = $tmp['url'];
+            }
+            if ($tmp["statetype"] == 'mediadmp')
+            {
+                $data['name'] = $tmp['name'];
+                $data['mediatype'] = $tmp['mediatype'];
+                $data['playstate'] = $tmp['playstate'];
+                $data['starttime'] = $tmp['starttime'];
+                $data['curtime'] = $tmp['curtime'];
+                $data['totaltime'] = $tmp['totaltime'];
+            }
+            $data['statetype'] = $tmp['statetype'];
             $this->updateData($id,$data);
         }
             

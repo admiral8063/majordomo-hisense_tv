@@ -11,7 +11,7 @@
    $ok=1;
   // step: default
   if ($this->tab=='') {
-  //updating '<%LANG_TITLE%>' (varchar, required)
+  //updating TITLE (varchar, required)
    $rec['TITLE']=gr('title');
    if ($rec['TITLE']=='') {
     $out['ERR_TITLE']=1;
@@ -19,8 +19,16 @@
    }
   //updating 'IP' (varchar)
    $rec['IP']=gr('ip');
+  if ($rec['IP']=='') {
+    $out['ERR_IP']=1;
+    $ok=0;
+   }
   //updating 'MAC' (varchar)
    $rec['MAC']=gr('mac');
+   if ($rec['MAC']=='') {
+    $out['ERR_MAC']=1;
+    $ok=0;
+   }
   }
   // step: data
   if ($this->tab=='data') {
@@ -56,10 +64,6 @@
    for($i=0;$i<$total;$i++) {
     if ($properties[$i]['ID']==$new_id) continue;
     if ($this->mode=='update') {
-      global ${'title'.$properties[$i]['ID']};
-      $properties[$i]['TITLE']=trim(${'title'.$properties[$i]['ID']});
-      global ${'value'.$properties[$i]['ID']};
-      $properties[$i]['VALUE']=trim(${'value'.$properties[$i]['ID']});
       global ${'linked_object'.$properties[$i]['ID']};
       $properties[$i]['LINKED_OBJECT']=trim(${'linked_object'.$properties[$i]['ID']});
       global ${'linked_property'.$properties[$i]['ID']};
