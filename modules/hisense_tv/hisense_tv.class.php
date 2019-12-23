@@ -248,7 +248,7 @@ function usual(&$out) {
       $device_id = $properties[$i]["DEVICE_ID"];
       $table='hisense_device';
       $device=SQLSelectOne("SELECT * FROM $table WHERE ID=$device_id"); 
-      //DebMes($device['IP']." ".$device['MAC'], 'hisense_tv'); 
+      DebMes($device['IP']." ".$device['MAC'], 'hisense_tv'); 
       $new = $value;
       $old = $properties[$i]['VALUE'];
         
@@ -453,6 +453,7 @@ function processMessage($id, $path, $value)
                 $data['totaltime'] = $tmp['totaltime'];
             }
             $data['statetype'] = $tmp['statetype'];
+            $data['state'] = 1;
             $this->updateData($id,$data);
         }
             
