@@ -248,13 +248,14 @@ function usual(&$out) {
       $device_id = $properties[$i]["DEVICE_ID"];
       $table='hisense_device';
       $device=SQLSelectOne("SELECT * FROM $table WHERE ID=$device_id"); 
-      DebMes($device['IP']." ".$device['MAC'], 'hisense_tv'); 
+      
       $new = $value;
       $old = $properties[$i]['VALUE'];
+      DebMes($device['IP']." ".$properties[$i]['TITLE']."=".$old, 'hisense_tv'); 
         
       if ($new != $old)
       {
-          $name = $this->client_name.substr(md5(rand()),0,5);
+          $name = "Majordomo";// $this->client_name.substr(md5(rand()),0,5);
                     
           if ($properties[$i]['TITLE'] == 'state')
           {
@@ -298,6 +299,15 @@ function usual(&$out) {
           {
             $this->sendCommand($device['IP'],'/remoteapp/tv/platform_service/'.$name.'/actions/changevolume',$value);
           }
+          if ($properties[$i]['TITLE'] == 'source')
+          {
+              if ($new == 'tv') $this->sendCommand($device['IP'],'/remoteapp/tv/ui_service/'.$name.'/actions/changesource','{"sourceid" : "0","sourcename" : "TV"}');
+              else if ($new == 'av') $this->sendCommand($device['IP'],'/remoteapp/tv/ui_service/'.$name.'/actions/changesource','{"sourceid" : "1","sourcename" : "AV"}');
+              else if ($new == 'hdmi1') $this->sendCommand($device['IP'],'/remoteapp/tv/ui_service/'.$name.'/actions/changesource','{"sourceid" : "4","sourcename" : "HDMI 1"}');
+              else if ($new == 'hdmi2') $this->sendCommand($device['IP'],'/remoteapp/tv/ui_service/'.$name.'/actions/changesource','{"sourceid" : "5","sourcename" : "HDMI 2"}');
+              else if ($new == 'youtube') $this->sendCommand($device['IP'],'/remoteapp/tv/ui_service/'.$name.'/actions/launchapp','{"name" : "YouTube","urlType" : 37,"storeType" : 0,"url" : "youtube"}');
+              else if ($new == 'netflix') $this->sendCommand($device['IP'],'/remoteapp/tv/ui_service/'.$name.'/actions/launchapp','{"name" : "Netflix","urlType" : 37,"storeType" : 0,"url" : "netflix"}');
+          }
       
       }
     }
@@ -307,10 +317,11 @@ function usual(&$out) {
  function sendCommand($host, $topic, $msg)
  {
     $client = $this->createClient($host);
-    $name = $this->client_name.substr(md5(rand()),0,5);
+    $name = "Majordomo";//$this->client_name.substr(md5(rand()),0,5);
     $success = $client->sendConnect($name);  // set your client ID
     if ($success)
     {
+        DebMes($host." ".$topic." ".$msg, 'hisense_tv');
         $client->sendPublish($topic, $msg);
     }
  }
@@ -343,6 +354,7 @@ function usual(&$out) {
     {
         if ($mqtt_client->isConnected())
         {
+            //$mqtt_client->sendPublish('/remoteapp/tv/ui_service/AutoHTPC/actions/gettvstate',"");
             $messages = $mqtt_client->getPublishMessages();
             foreach ($messages as $message) {
                 print_r($message);
@@ -437,11 +449,13 @@ function processMessage($id, $path, $value)
                 $data['detail'] = $tmp['detail'];
                 $data['starttime'] = $tmp['starttime'];
                 $data['endtime'] = $tmp['endtime'];
+                $data['source'] = 'tv';
             }
             if ($tmp["statetype"] == 'app')
             {
                 $data['name'] = $tmp['name'];
                 $data['url'] = $tmp['url'];
+                $data['source'] = $tmp['name'];
             }
             if ($tmp["statetype"] == 'mediadmp')
             {
@@ -451,6 +465,13 @@ function processMessage($id, $path, $value)
                 $data['starttime'] = $tmp['starttime'];
                 $data['curtime'] = $tmp['curtime'];
                 $data['totaltime'] = $tmp['totaltime'];
+                $data['source'] = 'media';
+            }
+            if ($tmp["statetype"] == 'sourceswitch')
+            {
+                $data['name'] = $tmp['displayname'];
+                $data['sourceid'] = $tmp['sourceid'];
+                $data['source'] = strtolower($tmp['sourcename']);
             }
             $data['statetype'] = $tmp['statetype'];
             $data['state'] = 1;
