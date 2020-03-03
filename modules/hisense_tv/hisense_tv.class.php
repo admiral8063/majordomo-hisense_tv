@@ -255,7 +255,7 @@ function usual(&$out) {
         
       if ($new != $old)
       {
-          $name = "Majordomo";// $this->client_name.substr(md5(rand()),0,5);
+          $name = "Majordomo";
                     
           if ($properties[$i]['TITLE'] == 'state')
           {
@@ -307,6 +307,11 @@ function usual(&$out) {
               else if ($new == 'hdmi2') $this->sendCommand($device['IP'],'/remoteapp/tv/ui_service/'.$name.'/actions/changesource','{"sourceid" : "5","sourcename" : "HDMI 2"}');
               else if ($new == 'youtube') $this->sendCommand($device['IP'],'/remoteapp/tv/ui_service/'.$name.'/actions/launchapp','{"name" : "YouTube","urlType" : 37,"storeType" : 0,"url" : "youtube"}');
               else if ($new == 'netflix') $this->sendCommand($device['IP'],'/remoteapp/tv/ui_service/'.$name.'/actions/launchapp','{"name" : "Netflix","urlType" : 37,"storeType" : 0,"url" : "netflix"}');
+              else DebMes("Unknown source - ".$new, 'hisense_tv');
+            
+            $properties[$i]["UPDATED"] = date('Y-m-d H:i:s');
+            $properties[$i]["VALUE"] = $new;
+            SQLUpdate('hisense_device_data', $properties[$i]);
           }
       
       }
@@ -317,11 +322,11 @@ function usual(&$out) {
  function sendCommand($host, $topic, $msg)
  {
     $client = $this->createClient($host);
-    $name = "Majordomo";//$this->client_name.substr(md5(rand()),0,5);
+    $name = "Majordomo";
     $success = $client->sendConnect($name);  // set your client ID
     if ($success)
     {
-        DebMes($host." ".$topic." ".$msg, 'hisense_tv');
+        DebMes("Send:".$host."->".$topic."=".$msg, 'hisense_tv');
         $client->sendPublish($topic, $msg);
     }
  }
@@ -419,10 +424,9 @@ function usual(&$out) {
                 if ($value["VALUE"] != $val)
                 {   
                     $value["VALUE"] = $val;
-                    SQLUpdate($table_name, $value);
-                    if ($value['LINKED_OBJECT'] && $value['LINKED_PROPERTY']) {
+                    if ($value['LINKED_OBJECT'] && $value['LINKED_PROPERTY']) 
                         setGlobal($value['LINKED_OBJECT'] . '.' . $value['LINKED_PROPERTY'], $val, array($this->name => '0'));
-                    }
+                    SQLUpdate($table_name, $value);
                 }
             }
             else{
@@ -434,8 +438,7 @@ function usual(&$out) {
  
 function processMessage($id, $path, $value)
     {
-        DebMes("ID: $id Topic:$path Msg: $value", 'hisense_tv'); 
-        print_r ($value);
+        DebMes("Recv:$id<-$path=$value", 'hisense_tv'); 
             
         if ($path == '/remoteapp/mobile/broadcast/ui_service/state')
         {
@@ -444,7 +447,7 @@ function processMessage($id, $path, $value)
             if ($tmp["statetype"] == 'livetv')
             {
                 $data['channel_num'] = $tmp['channel_num'];
-                $data['name'] = $tmp['channel_name'];
+                $data['channel_name'] = $tmp['channel_name'];
                 $data['progname'] = $tmp['progname'];
                 $data['detail'] = $tmp['detail'];
                 $data['starttime'] = $tmp['starttime'];
@@ -453,13 +456,13 @@ function processMessage($id, $path, $value)
             }
             if ($tmp["statetype"] == 'app')
             {
-                $data['name'] = $tmp['name'];
+                $data['app_name'] = $tmp['name'];
                 $data['url'] = $tmp['url'];
                 $data['source'] = $tmp['name'];
             }
             if ($tmp["statetype"] == 'mediadmp')
             {
-                $data['name'] = $tmp['name'];
+                $data['media_name'] = $tmp['name'];
                 $data['mediatype'] = $tmp['mediatype'];
                 $data['playstate'] = $tmp['playstate'];
                 $data['starttime'] = $tmp['starttime'];
@@ -469,7 +472,7 @@ function processMessage($id, $path, $value)
             }
             if ($tmp["statetype"] == 'sourceswitch')
             {
-                $data['name'] = $tmp['displayname'];
+                $data['source_name'] = $tmp['displayname'];
                 $data['sourceid'] = $tmp['sourceid'];
                 $data['source'] = strtolower($tmp['sourcename']);
             }
@@ -485,9 +488,18 @@ function processMessage($id, $path, $value)
             $this->updateData($id,$data);
         }
         
+        
         if ($path == '/remoteapp/mobile/broadcast/platform_service/actions/tvsleep')
         {
             $data['state'] = '0';
+            $this->updateData($id,$data);
+        }
+        
+        if ($path == '/remoteapp/tv/ui_service/Majordomo/actions/changesource')
+        {
+            //{"sourceid" : "0","sourcename" : "TV"}
+            $data['sourceid'] = $tmp['sourceid'];
+            $data['source'] = strtolower($tmp['sourcename']);
             $this->updateData($id,$data);
         }
             
