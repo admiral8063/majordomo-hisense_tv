@@ -131,7 +131,7 @@ function api($params) {
 
 function admin(&$out) {
  $this->getConfig();
- if (!gg('cycle_sonoff_diyRun')) {
+ if (!gg('cycle_hisense_tvRun')) {
    setGlobal('cycle_hisense_tvRun',1);
  }
  if ((time() - gg('cycle_hisense_tvRun')) < 60 ) {
